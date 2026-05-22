@@ -1,0 +1,21 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Raw 원본 파일 (master만 푸시, raw는 제외)
+data/raw/
+
+# Streamlit secrets
+.streamlit/secrets.toml
+
+# 로그/임시
+*.log
+nohup.out
+
+# 개발 도구
+.superpowers/
+docs/
+*.zip
