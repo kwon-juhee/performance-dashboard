@@ -780,8 +780,43 @@ def tab_ranking(df: pd.DataFrame):
 </div>""", unsafe_allow_html=True)
 
 
+# ── 비밀번호 게이트 ───────────────────────────────────────────────────────
+def check_password() -> bool:
+    """st.secrets["password"] 와 일치하면 True. 로컬 실행 시 secrets 없으면 통과."""
+    if st.session_state.get("_auth"):
+        return True
+
+    # 로컬 개발: secrets 없으면 게이트 생략
+    try:
+        correct_pw = st.secrets["password"]
+    except (FileNotFoundError, KeyError):
+        return True
+
+    # 로그인 UI
+    col_l, col_m, col_r = st.columns([1, 1.4, 1])
+    with col_m:
+        st.markdown(f"""
+<div style="text-align:center;padding:60px 0 24px">
+  <div style="font-size:40px;margin-bottom:10px">🔐</div>
+  <div style="font-size:22px;font-weight:800;color:{MAIN}">퍼포먼스 마케팅 대시보드</div>
+  <div style="font-size:13px;color:{MUTED};margin-top:6px">접근 권한이 필요합니다</div>
+</div>""", unsafe_allow_html=True)
+        pwd = st.text_input("비밀번호", type="password",
+                            placeholder="비밀번호를 입력하세요",
+                            label_visibility="collapsed")
+        if st.button("로그인", use_container_width=True, type="primary"):
+            if pwd == correct_pw:
+                st.session_state._auth = True
+                st.rerun()
+            else:
+                st.error("비밀번호가 올바르지 않습니다.")
+    return False
+
+
 # ── 메인 ─────────────────────────────────────────────────────────────────
 def main():
+    if not check_password():
+        st.stop()
     st.markdown(f"""
 <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
   <span style="font-size:26px;font-weight:800;color:{MAIN}">
