@@ -24,6 +24,13 @@ test('classifyRow → upload when 검수대기 and 승인(J) truthy', () => {
 });
 
 test('classifyRow → skip for 완료/오류', () => {
-  assert.strictEqual(classifyRow(['t', 's', 'c', '', '', false, '완료', 'prev', 'result', true]), 'skip');
+  assert.strictEqual(classifyRow(['t', 's', 'c', '', '', false, '✅ 완료', 'prev', 'result', true]), 'skip');
   assert.strictEqual(classifyRow(['t', 's', 'c', '', '', false, '⚠️ 오류', '', '', false]), 'skip');
+});
+
+test('classifyRow tolerates emoji-prefixed status', () => {
+  assert.strictEqual(classifyRow(['t', 's', 'c', '', '', false, '📝 요청됨', '', '', false]), 'generate');
+  assert.strictEqual(classifyRow(['t', 's', 'c', '', '', false, '🔄 재요청', '', '', false]), 'generate');
+  assert.strictEqual(classifyRow(['t', 's', 'c', '', '', false, '🔍 검수대기', 'prev', '', true]), 'upload');
+  assert.strictEqual(classifyRow(['t', 's', 'c', '', '', false, '⏳ 생성중', '', '', false]), 'skip');
 });

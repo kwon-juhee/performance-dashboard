@@ -35,7 +35,7 @@ async function processGenerate(r, sheets) {
   const name = `${slug(values[0], rowNum)}.png`;
   const link = await uploadAndShare(out, `${FOLDER}/_review/${name}`);
   await sheets.setCell(rowNum, 'H', link); // 미리보기 링크 = H열
-  await sheets.setStatus(rowNum, '검수대기');
+  await sheets.setStatus(rowNum, '🔍 검수대기');
 }
 
 async function processUpload(r, sheets) {
@@ -54,7 +54,7 @@ async function processUpload(r, sheets) {
       fs.copyFileSync(src, path.join(localDir, name));
     }
   }
-  await sheets.setStatus(rowNum, '완료');
+  await sheets.setStatus(rowNum, '✅ 완료');
 }
 
 module.exports = { runTick, processGenerate, processUpload };

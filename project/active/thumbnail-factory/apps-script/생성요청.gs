@@ -26,18 +26,18 @@ function onEdit(e) {
   if (e.value !== 'TRUE' && e.value !== true) return; // 체크될 때만
   var sh = r.getSheet();
   var row = r.getRow();
-  sh.getRange(row, COL.STATUS).setValue('요청됨'); // G
+  sh.getRange(row, COL.STATUS).setValue('📝 요청됨'); // G
   r.setValue(false); // 생성요청 체크 해제(접수됨)
 }
 
-// 선택 행들의 F열(상태)을 '요청됨'으로
+// 선택 행들의 상태(G)를 '요청됨'으로
 function 생성요청() {
-  setStatusForSelection_('요청됨', false);
+  setStatusForSelection_('📝 요청됨', false);
 }
 
-// 완료된 행 다시 만들기: F='재요청', H(승인) 해제
+// 완료된 행 다시 만들기: 상태='재요청', 승인(J) 해제
 function 재요청() {
-  setStatusForSelection_('재요청', true);
+  setStatusForSelection_('🔄 재요청', true);
 }
 
 function setStatusForSelection_(status, clearApprove) {
