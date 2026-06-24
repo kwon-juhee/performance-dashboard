@@ -1,0 +1,14 @@
+{
+  "name": "thumbnail-factory",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test tests/",
+    "render": "node engine/render.js",
+    "preview": "node engine/build_preview.js"
+  },
+  "dependencies": {
+    "playwright": "^1.48.0"
+  }
+}
