@@ -12,7 +12,7 @@
 | 트리거 | **로컬 워처**(Node 상시 실행, ~20초 폴링) | 체감 ~1분 / 유휴 시 LLM 미실행 = 무비용 / Cloudflare·API키 불필요 |
 | 검수 | **2단계**(생성→검수대기→사람 승인→적재) | 디자인 검수 원칙 유지 |
 | 지능 호출 | motif 생성만 `claude -p` 위임 | 별도 Anthropic API 키·비용 없이 기존 Claude Code 사용. 헤드리스 MCP 인증 문제 회피 |
-| 시트 접근(워처) | **Google 서비스 계정**(googleapis) | 무인 read/write에 표준·안정 |
+| 시트 접근(워처) | **기존 Google OAuth 토큰 재사용**(`~/.claude/google-oauth-token.json`, spreadsheets+drive 스코프+refresh_token) | 서비스계정 신규 생성 불필요 — 이미 발급된 authorized-user 자격을 googleapis로 사용 |
 | Dropbox | **refresh token**으로 액세스 토큰 자동 갱신 | 워처가 4h 이상 상주 |
 | 상시 실행 | Windows 작업 스케줄러(로그온 시 시작) | 데몬 관리 단순 |
 
@@ -60,10 +60,10 @@
 ## 5. 구성요소 (독립 단위)
 
 1. **`watcher/watcher.js`** — 폴링 루프. 매 틱: (a) 생성 대상(F∈{빈칸,요청됨,재요청}) 처리, (b) 적재 대상(F='검수대기' & H=TRUE) 처리. 행 단위 try/catch 격리. 동시성 1(순차)로 단순화.
-2. **`watcher/sheets_client.js`** — `googleapis` 서비스계정 인증. `getRows()`, `setStatus(row, status)`, `setCell(row, col, val)`.
+2. **`watcher/sheets_client.js`** — `googleapis` OAuth2(authorized-user, 기존 토큰 재사용, 자동 refresh). `getRows()`, `setStatus(row, status)`, `setCell(row, col, val)`.
 3. **`watcher/generate_motif.js`** — `child_process`로 `claude -p` 실행. 입력: 행 데이터 + `engine/generate.md` 규칙. 출력: motif HTML 문자열(+ title_html/sub_html). JSON으로 회수(파싱 가드).
 4. **`engine/upload_dropbox.js` 확장** — `getAccessToken()`(refresh token 교환·캐시), `moveFile(fromPath, toPath)`(files/move_v2). 기존 `uploadAndShare`는 access token 주입형으로 리팩터.
-5. **`watcher/.env`** — `GOOGLE_SA_KEYFILE`, `SPREADSHEET_ID`, `SHEET_NAME`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`, `DROPBOX_REFRESH_TOKEN`, `DROPBOX_FOLDER`, `POLL_INTERVAL_MS`.
+5. **`watcher/.env`** — `GOOGLE_OAUTH_TOKEN` (기본 `~/.claude/google-oauth-token.json`), `SPREADSHEET_ID`, `SHEET_NAME`, `DROPBOX_APP_KEY`, `DROPBOX_APP_SECRET`, `DROPBOX_REFRESH_TOKEN`, `DROPBOX_FOLDER`, `POLL_INTERVAL_MS`, `LLM_BACKEND`(claude|api), `ANTHROPIC_API_KEY`(폴백 시).
 6. **Apps Script 버튼**(선택) — `생성요청`: 선택 행 F='요청됨'. 승인은 H 체크박스라 버튼 없음.
 7. **작업 스케줄러 등록** — `watcher/start-watcher.ps1` + 등록 안내(로그온 시 `node watcher/watcher.js`).
 
@@ -96,7 +96,7 @@ slug = A 타이틀 → 영문/숫자/하이픈 정규화 + 행번호 suffix(충�
 
 ## 9. 새 셋업 (사용자 1회)
 
-- **Google 서비스 계정**: GCP 콘솔 → 서비스계정 생성 → JSON 키 다운로드 → **시트를 서비스계정 이메일에 편집 공유**. Sheets API 활성화.
+- ~~Google 서비스 계정~~ → **불필요. 기존 `~/.claude/google-oauth-token.json`(spreadsheets+drive 스코프, refresh_token 포함) 재사용.** 시트가 그 토큰 소유 계정 소유면 추가 공유도 불필요.
 - **Dropbox refresh token**: 기존 scoped 앱의 App key/secret로 OAuth code flow 1회(`token_access_type=offline`) → refresh token 획득.
 - **작업 스케줄러**: 로그온 시 watcher 자동 시작 등록.
 
