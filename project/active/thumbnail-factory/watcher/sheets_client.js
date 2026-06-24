@@ -6,6 +6,7 @@ const TOKEN_PATH = process.env.GOOGLE_OAUTH_TOKEN
 const ID = process.env.SPREADSHEET_ID;
 const SHEET = process.env.SHEET_NAME || '시트1';
 const Q = `'${SHEET.replace(/'/g, "''")}'`; // 비ASCII 시트명은 작은따옴표 필요
+const DATA_START = parseInt(process.env.DATA_START_ROW || '2', 10); // 헤더/안내 블록 아래 첫 데이터 행
 
 function client() {
   const tok = JSON.parse(fs.readFileSync(TOKEN_PATH, 'utf8'));
@@ -17,9 +18,9 @@ function client() {
 async function getRows() {
   const sheets = client();
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: ID, range: `${Q}!A2:I`, valueRenderOption: 'UNFORMATTED_VALUE',
+    spreadsheetId: ID, range: `${Q}!A${DATA_START}:I`, valueRenderOption: 'UNFORMATTED_VALUE',
   });
-  return (res.data.values || []).map((values, i) => ({ rowNum: i + 2, values }));
+  return (res.data.values || []).map((values, i) => ({ rowNum: i + DATA_START, values }));
 }
 
 async function setCell(rowNum, colLetter, value) {
