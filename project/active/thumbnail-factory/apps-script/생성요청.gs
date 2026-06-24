@@ -27,7 +27,8 @@ function onEdit(e) {
   var sh = r.getSheet();
   var row = r.getRow();
   sh.getRange(row, COL.STATUS).setValue('📝 요청됨'); // G
-  r.setValue(false); // 생성요청 체크 해제(접수됨)
+  sh.getRange(row, COL.APPROVE).setValue(false);     // 재생성 시 이전 승인 해제 → 다시 검수
+  r.setValue(false);                                 // 생성요청 체크 해제(접수됨)
 }
 
 // 선택 행들의 상태(G)를 '요청됨'으로
