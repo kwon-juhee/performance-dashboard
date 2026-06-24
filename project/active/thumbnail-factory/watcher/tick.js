@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const { classifyRow, slug } = require('./rows.js');
 const { generateMotif } = require('./motif.js');
 const { renderThumbnail } = require('../engine/render.js');
@@ -44,6 +45,15 @@ async function processUpload(r, sheets) {
   await moveFile(`${FOLDER}/_review/${name}`, `${FOLDER}/${name}`, token);
   const link = await createSharedLink(`${FOLDER}/${name}`, token);
   await sheets.setCell(rowNum, 'I', link); // 결과 이미지 링크 = I열
+  // 로컬 동기화 폴더(팀 Dropbox)에도 실물 복사 — 팀원이 폴더에서 바로 사용
+  const localDir = process.env.LOCAL_OUTPUT_DIR;
+  if (localDir) {
+    const src = path.join(OUTPUT_DIR, `row${rowNum}.png`);
+    if (fs.existsSync(src)) {
+      fs.mkdirSync(localDir, { recursive: true });
+      fs.copyFileSync(src, path.join(localDir, name));
+    }
+  }
   await sheets.setStatus(rowNum, '완료');
 }
 

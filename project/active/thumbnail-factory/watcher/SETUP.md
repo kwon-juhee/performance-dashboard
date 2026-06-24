@@ -29,6 +29,13 @@ A~E 입력 | F 상태 | G 결과링크 | H 승인(체크박스) | I 미리보기
 4. 출력된 `DROPBOX_APP_KEY / DROPBOX_APP_SECRET / DROPBOX_REFRESH_TOKEN` 을 `watcher/.env` 에 채운다.
    (refresh token이 있으면 워처가 4h 토큰을 자동 재발급. 없으면 기존 `DROPBOX_TOKEN`(4h)로만 동작 → 4시간 후 멈춤.)
 
+## 2-1. 결과 이미지 저장 위치
+- **검수 미리보기**: Dropbox 앱 폴더 `…/LEVER Xpert-thumnail-factory/thumbnails/_review/` → 시트 H열에 원격 링크.
+- **최종(승인 후)**: Dropbox 앱 폴더 `…/thumbnails/` (시트 I열 링크) **+** 로컬 동기화 팀 폴더에 실물 복사.
+  - `watcher/.env` 의 `LOCAL_OUTPUT_DIR` 가 그 팀 폴더 경로. 현재: `…/주식회사매드업 Dropbox/CSM팀/콘텐츠/블로그/썸네일`.
+  - 비우면 로컬 복사 안 함(앱 폴더에만).
+- 참고: 현재 Dropbox 앱이 **App folder 타입**이라 API로는 앱 폴더 밖에 직접 못 씀. 그래서 팀 폴더行은 "로컬 동기화 폴더에 파일 복사"(이 PC가 동기화 중) 방식으로 처리.
+
 ## 3. `claude -p` 인증 검증 (생성 단계 핵심)
 워처는 motif 생성을 `claude -p` 에 위임한다(별도 API 비용 없음). 실제 로그인 세션에서 동작하는지 1회 확인:
 ```bash
