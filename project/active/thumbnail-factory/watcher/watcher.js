@@ -26,6 +26,15 @@ async function loop() {
   finally { running = false; }
 }
 
-console.log(`[${ts()}] thumbnail watcher started (poll ${INTERVAL}ms, sheet "${process.env.SHEET_NAME}")`);
-loop();
-setInterval(loop, INTERVAL);
+// 단일 인스턴스 보장(중복 실행 방지): 로컬 포트 점유. 이미 떠 있으면 즉시 종료.
+const net = require('net');
+const guard = net.createServer();
+guard.once('error', (e) => {
+  if (e.code === 'EADDRINUSE') { console.log(`[${ts()}] 다른 워처가 이미 실행 중 — 종료`); process.exit(0); }
+  throw e;
+});
+guard.listen(47615, '127.0.0.1', () => {
+  console.log(`[${ts()}] thumbnail watcher started (poll ${INTERVAL}ms, sheet "${process.env.SHEET_NAME}")`);
+  loop();
+  setInterval(loop, INTERVAL);
+});
