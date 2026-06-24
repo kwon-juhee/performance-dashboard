@@ -16,7 +16,7 @@ function fakeDeps(rows) {
 
 test('runTick routes generate/upload/skip by classification', async () => {
   const rows = [
-    { rowNum: 2, values: ['t', 's', 'c', '', '', '', '', false, ''] },        // generate
+    { rowNum: 2, values: ['t', 's', 'c', '', '', '요청됨', '', false, ''] },   // generate
     { rowNum: 3, values: ['t', 's', 'c', '', '', '검수대기', '', true, 'p'] }, // upload
     { rowNum: 4, values: ['t', 's', 'c', '', '', '완료', 'g', true, 'p'] },    // skip
   ];
@@ -28,7 +28,7 @@ test('runTick routes generate/upload/skip by classification', async () => {
 });
 
 test('runTick isolates row errors via onError', async () => {
-  const rows = [{ rowNum: 2, values: ['t', 's', 'c', '', '', '', '', false, ''] }];
+  const rows = [{ rowNum: 2, values: ['t', 's', 'c', '', '', '요청됨', '', false, ''] }];
   const d = fakeDeps(rows);
   d.processGenerate = async () => { throw new Error('boom'); };
   await runTick(d);

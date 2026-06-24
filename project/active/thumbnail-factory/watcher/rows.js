@@ -17,7 +17,7 @@ function classifyRow(row) {
   const a = String(row[0] || '').trim();
   const b = String(row[1] || '').trim();
   const c = String(row[2] || '').trim();
-  if ((status === '' || status === '요청됨' || status === '재요청') && a && b && c) return 'generate';
+  if ((status === '요청됨' || status === '재요청') && a && b && c) return 'generate';
   if (status === '검수대기' && truthy(row[7])) return 'upload';
   return 'skip';
 }
