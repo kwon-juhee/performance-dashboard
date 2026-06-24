@@ -1,4 +1,4 @@
-const { execFile } = require('child_process');
+const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -34,12 +34,23 @@ ${rules}
 {"title_html":"...","sub_html":"...","motif_html":"..."}`;
 }
 
+// 프롬프트는 stdin으로 전달(멀티라인 안전). Windows에선 claude가 .cmd 셰임이라 cmd.exe 경유.
 function runClaude(prompt) {
   return new Promise((resolve, reject) => {
-    execFile('claude', ['-p', prompt], { maxBuffer: 10 * 1024 * 1024 }, (err, stdout, stderr) => {
-      if (err) return reject(new Error(`claude -p failed: ${stderr || err.message}`));
-      resolve(stdout);
-    });
+    const bin = process.env.CLAUDE_BIN || 'claude';
+    const isWin = process.platform === 'win32';
+    const cmd = isWin ? 'cmd.exe' : bin;
+    const args = isWin ? ['/c', bin, '-p'] : ['-p'];
+    const child = spawn(cmd, args, { windowsHide: true });
+    let out = '', err = '';
+    child.stdout.on('data', d => (out += d));
+    child.stderr.on('data', d => (err += d));
+    child.on('error', e => reject(new Error(`claude spawn 실패: ${e.message}`)));
+    child.on('close', code => code === 0
+      ? resolve(out)
+      : reject(new Error(`claude -p exit ${code}: ${String(err).slice(0, 200)}`)));
+    child.stdin.write(prompt);
+    child.stdin.end();
   });
 }
 
