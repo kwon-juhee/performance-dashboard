@@ -26,9 +26,9 @@ description: 썸네일 팩토리 — 시트의 대기 행을 읽어 썸네일 �
 
 7. **미리보기 열기 + 검수 요청**: `_preview.html`을 사용자에게 보여주고(Read로 PNG 확인 또는 브라우저 open), "어느 행을 적재할까요? (전체/일부/없음)" 확인받는다. **검수 통과 전 업로드 금지.**
 
-8. **승인분 업로드**: `.env`를 로드해 `DROPBOX_TOKEN`을 환경에 주입한 뒤, 승인된 행마다
-   `DROPBOX_TOKEN=... node engine/upload_dropbox.js output/row<N>.png <DROPBOX_FOLDER>/<슬러그>.png`
-   실행(슬러그 = A 타이틀 기반 영문/숫자 파일명). 반환 링크를 수집.
+8. **승인분 업로드**: `.env`를 로드(`set -a; . ./.env; set +a`)한 뒤, 승인된 행마다
+   `MSYS_NO_PATHCONV=1 node engine/upload_dropbox.js output/row<N>.png <DROPBOX_FOLDER>/<슬러그>.png`
+   실행(슬러그 = A 타이틀 기반 영문/숫자 파일명). **Windows Git Bash는 `MSYS_NO_PATHCONV=1` 필수** — 없으면 `/thumbnails/...` 경로가 Windows 경로로 변환돼 업로드 실패. 반환 링크를 수집.
 
 9. **시트 writeback**: 승인 행은 `mcp__google-sheets__update_cells`로 F='✅ 완료', G=<링크>. 미승인은 그대로(다음 실행 때 재처리), 실패 행은 F='⚠️ <사유>'.
 

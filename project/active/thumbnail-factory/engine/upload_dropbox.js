@@ -3,8 +3,8 @@ const fs = require('fs');
 const TOKEN = process.env.DROPBOX_TOKEN;
 
 function directLink(url) {
-  // 미리보기(dl=0) → 직접 다운로드(dl=1)
-  return url.replace('?dl=0', '?dl=1');
+  // 미리보기(dl=0) → 직접 다운로드(dl=1). 신·구 링크 형식(?dl=0 / &dl=0) 모두 대응.
+  return url.replace(/dl=0/, 'dl=1');
 }
 
 async function uploadAndShare(localPath, dropboxPath) {
