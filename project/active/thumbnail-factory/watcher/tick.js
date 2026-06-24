@@ -27,6 +27,7 @@ async function runTick(deps) {
 async function processGenerate(r, sheets) {
   const { rowNum, values } = r;
   await sheets.setStatus(rowNum, '⏳ 생성중');
+  await sheets.setCell(rowNum, 'J', false); // 재요청 시 이전 승인 해제 → 반드시 재검수
   const motif = await generateMotif(values);
   const out = path.join(OUTPUT_DIR, `row${rowNum}.png`);
   await renderThumbnail({
