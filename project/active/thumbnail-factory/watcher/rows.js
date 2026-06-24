@@ -11,14 +11,14 @@ function truthy(v) {
   return v === true || /^(true|✅|y|yes)$/i.test(String(v || '').trim());
 }
 
-// row = [A..I] => 'generate' | 'upload' | 'skip'
+// row = [A..J]: A0 B1 C2 D3 E4 생성요청5 상태6 미리보기7 결과링크8 승인9
 function classifyRow(row) {
-  const status = String(row[5] || '').trim();
+  const status = String(row[6] || '').trim();
   const a = String(row[0] || '').trim();
   const b = String(row[1] || '').trim();
   const c = String(row[2] || '').trim();
   if ((status === '요청됨' || status === '재요청') && a && b && c) return 'generate';
-  if (status === '검수대기' && truthy(row[7])) return 'upload';
+  if (status === '검수대기' && truthy(row[9])) return 'upload';
   return 'skip';
 }
 

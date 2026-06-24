@@ -15,20 +15,21 @@ function fakeDeps(rows) {
 }
 
 test('runTick routes generate/upload/skip by classification', async () => {
+  // 컬럼: A0 B1 C2 D3 E4 생성요청5 상태6 미리보기7 결과링크8 승인9
   const rows = [
-    { rowNum: 2, values: ['t', 's', 'c', '', '', '요청됨', '', false, ''] },   // generate
-    { rowNum: 3, values: ['t', 's', 'c', '', '', '검수대기', '', true, 'p'] }, // upload
-    { rowNum: 4, values: ['t', 's', 'c', '', '', '완료', 'g', true, 'p'] },    // skip
+    { rowNum: 6, values: ['t', 's', 'c', '', '', false, '요청됨', '', '', false] },    // generate
+    { rowNum: 7, values: ['t', 's', 'c', '', '', false, '검수대기', 'p', '', true] },  // upload
+    { rowNum: 8, values: ['t', 's', 'c', '', '', false, '완료', 'p', 'g', true] },     // skip
   ];
   const d = fakeDeps(rows);
   await runTick(d);
-  assert.deepStrictEqual(d.calls.generate, [2]);
-  assert.deepStrictEqual(d.calls.upload, [3]);
+  assert.deepStrictEqual(d.calls.generate, [6]);
+  assert.deepStrictEqual(d.calls.upload, [7]);
   assert.strictEqual(d.calls.error.length, 0);
 });
 
 test('runTick isolates row errors via onError', async () => {
-  const rows = [{ rowNum: 2, values: ['t', 's', 'c', '', '', '요청됨', '', false, ''] }];
+  const rows = [{ rowNum: 6, values: ['t', 's', 'c', '', '', false, '요청됨', '', '', false] }];
   const d = fakeDeps(rows);
   d.processGenerate = async () => { throw new Error('boom'); };
   await runTick(d);

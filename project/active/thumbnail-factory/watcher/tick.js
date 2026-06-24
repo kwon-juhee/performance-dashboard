@@ -33,7 +33,7 @@ async function processGenerate(r, sheets) {
   });
   const name = `${slug(values[0], rowNum)}.png`;
   const link = await uploadAndShare(out, `${FOLDER}/_review/${name}`);
-  await sheets.setCell(rowNum, 'I', link);
+  await sheets.setCell(rowNum, 'H', link); // 미리보기 링크 = H열
   await sheets.setStatus(rowNum, '검수대기');
 }
 
@@ -43,7 +43,7 @@ async function processUpload(r, sheets) {
   const name = `${slug(values[0], rowNum)}.png`;
   await moveFile(`${FOLDER}/_review/${name}`, `${FOLDER}/${name}`, token);
   const link = await createSharedLink(`${FOLDER}/${name}`, token);
-  await sheets.setCell(rowNum, 'G', link);
+  await sheets.setCell(rowNum, 'I', link); // 결과 이미지 링크 = I열
   await sheets.setStatus(rowNum, '완료');
 }
 

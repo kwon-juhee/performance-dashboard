@@ -18,7 +18,7 @@ function client() {
 async function getRows() {
   const sheets = client();
   const res = await sheets.spreadsheets.values.get({
-    spreadsheetId: ID, range: `${Q}!A${DATA_START}:I`, valueRenderOption: 'UNFORMATTED_VALUE',
+    spreadsheetId: ID, range: `${Q}!A${DATA_START}:J`, valueRenderOption: 'UNFORMATTED_VALUE',
   });
   return (res.data.values || []).map((values, i) => ({ rowNum: i + DATA_START, values }));
 }
@@ -31,6 +31,6 @@ async function setCell(rowNum, colLetter, value) {
   });
 }
 
-const setStatus = (rowNum, status) => setCell(rowNum, 'F', status);
+const setStatus = (rowNum, status) => setCell(rowNum, 'G', status); // 상태 = G열
 
 module.exports = { getRows, setCell, setStatus };
