@@ -10,6 +10,14 @@ function tokenCacheFrom(json, now) {
   return { token: json.access_token, exp: now + (json.expires_in - 300) * 1000 };
 }
 
+// Dropbox-API-Arg 는 HTTP 헤더라 ASCII만 허용 → 비ASCII(한글 등)를 \uXXXX 로 이스케이프
+function httpHeaderSafeJson(obj) {
+  return JSON.stringify(obj)
+    .split('')
+    .map(c => (c.charCodeAt(0) > 127 ? '\\u' + c.charCodeAt(0).toString(16).padStart(4, '0') : c))
+    .join('');
+}
+
 let _cache = { token: null, exp: 0 };
 async function getAccessToken(now = Date.now()) {
   if (!process.env.DROPBOX_REFRESH_TOKEN) {
@@ -36,7 +44,7 @@ async function uploadFile(localPath, dropboxPath, token) {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'Dropbox-API-Arg': JSON.stringify({ path: dropboxPath, mode: 'overwrite', mute: true }),
+      'Dropbox-API-Arg': httpHeaderSafeJson({ path: dropboxPath, mode: 'overwrite', mute: true }),
       'Content-Type': 'application/octet-stream',
     },
     body: fs.readFileSync(localPath),
@@ -87,4 +95,4 @@ async function main() {
   console.log(await uploadAndShare(localPath, dropboxPath));
 }
 if (require.main === module) main();
-module.exports = { directLink, tokenCacheFrom, getAccessToken, uploadFile, createSharedLink, moveFile, uploadAndShare };
+module.exports = { directLink, tokenCacheFrom, httpHeaderSafeJson, getAccessToken, uploadFile, createSharedLink, moveFile, uploadAndShare };
