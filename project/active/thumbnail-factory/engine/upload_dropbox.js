@@ -1,8 +1,8 @@
 const fs = require('fs');
 
 function directLink(url) {
-  // 미리보기(dl=0) → 직접 다운로드(dl=1). 신·구 링크 형식(?dl=0 / &dl=0) 모두 대응.
-  return url.replace(/dl=0/, 'dl=1');
+  // 클릭 시 강제 다운로드(dl=1) 대신 브라우저 미리보기(dl=0)로 열리게.
+  return url.replace(/dl=1/, 'dl=0');
 }
 
 function tokenCacheFrom(json, now) {
