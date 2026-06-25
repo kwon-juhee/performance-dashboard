@@ -7,7 +7,7 @@
     "test": "node --test \"tests/*.test.js\"",
     "render": "node engine/render.js",
     "preview": "node engine/build_preview.js",
-    "watch": "node watcher/watcher.js"
+    "pending": "node engine/pending.js"
   },
   "dependencies": {
     "dotenv": "^16.6.1",

@@ -1,40 +1,30 @@
 ---
-description: 썸네일 팩토리 — 시트의 대기 행을 읽어 썸네일 생성·검수·Dropbox 적재
+description: 썸네일 팩토리 — 시트 요청 행을 생성·검수대기·승인적재 (Claude Code가 직접 처리, 무료)
 ---
 
 # /thumbnail
 
-프로젝트: `project/active/thumbnail-factory/`. 인자(`$ARGUMENTS`)로 spreadsheetId를 받을 수 있고, 없으면 `thumbnail-factory-context.md`의 ID를 사용한다.
+프로젝트: `project/active/thumbnail-factory/`. 모든 node 스크립트는 그 폴더에서 실행한다.
+LLM(우측 비주얼 motif) 생성은 **Claude Code(너)가 직접** 한다 — 외부 claude 호출 없음.
 
 ## 절차
 
-1. **컨텍스트 로드**: `project/active/thumbnail-factory/thumbnail-factory-context.md`에서 `spreadsheetId`, `DROPBOX_FOLDER` 확인. `engine/generate.md` 규칙을 읽는다.
+1. `cd "project/active/thumbnail-factory"`.
+2. `node engine/pending.js` → 생성 대기 행(요청됨/재요청) JSON 확인.
+3. **대기 행이 있으면**, 각 행마다 `engine/generate.md` 규칙대로 motif 생성:
+   - `title_html`: 메인 타이틀. `강조 단어(emph)`를 `<span class="grad">`로 감쌈. **한글 줄바꿈 규칙 준수**(단어 중간 자르기·조사/외톨이 글자 줄머리 금지 → 앞 줄로 올림).
+   - `sub_html`: 서브 문구. 앞부분 강조는 `<span class="pt">`.
+   - `motif_html`: `feel`(+`ref`) 기반 우측 비주얼. **요청하지 않은 텍스트(라벨·카피·숫자) 임의 생성 금지.**
+   - `output/jobs.json`에 배열로 저장: `[{ "id":"<rowNum>", "rowNum":<n>, "title":"<A원문>", "title_html":"…", "sub_html":"…", "motif_html":"…", "outPath":"output/row<n>.png" }]`
+4. `node engine/render.js output/jobs.json` → PNG 렌더.
+5. `node engine/upload_review.js` → Dropbox `_review/` 업로드 + 시트 `🔍 검수대기` + 미리보기 링크(H) + 슬랙 "검수해주세요" 알림.
+6. `node engine/deposit_approved.js` → 승인된 행(검수대기 & 승인 J=✅) 최종 폴더 이동 + 팀 동기화폴더 복사 + 결과 링크(I) + `✅ 완료` + 슬랙 "완료" 알림.
+7. 처리 결과 요약 보고(생성 N건 / 적재 M건 / 오류).
 
-2. **대기 행 읽기**: `mcp__google-sheets__get_sheet_data`로 A:G 전체를 읽어, **F(상태)가 빈** 행만 대상으로 한다. 각 행의 시트 행번호를 기억(writeback용). 대기 행이 없으면 그 사실을 보고하고 종료.
-
-3. **행마다 생성** (generate.md 규칙 준수):
-   - `강조 단어`(D)로 `title_html` 구성(`<span class="grad">`), 없으면 핵심 키워드 1개 자동 선택. 긴 제목은 한 줄 길이 가드레일대로 `<br>`로 끊는다.
-   - `서브 문구`(B) → `sub_html` (앞부분 강조는 `<span class="pt">`).
-   - `비주얼 느낌`(C) + `참고 이미지 URL`(E) → `motif_html` 생성.
-   - 각 행을 `{ id: "<행번호>", title: "<A 원문>", title_html, sub_html, motif_html, outPath: "output/row<행번호>.png" }`로 누적.
-
-4. **jobs.json 기록**: 누적 배열을 `project/active/thumbnail-factory/output/jobs.json`에 쓴다.
-
-5. **렌더**: 프로젝트 디렉토리에서 `node engine/render.js output/jobs.json` 실행. `output/render_results.json` 생성됨(id·title·ok 포함).
-
-6. **검수 갤러리**: `node engine/build_preview.js` 실행 → `output/_preview.html` 생성.
-
-7. **미리보기 열기 + 검수 요청**: `_preview.html`을 사용자에게 보여주고(Read로 PNG 확인 또는 브라우저 open), "어느 행을 적재할까요? (전체/일부/없음)" 확인받는다. **검수 통과 전 업로드 금지.**
-
-8. **승인분 업로드**: `.env`를 로드(`set -a; . ./.env; set +a`)한 뒤, 승인된 행마다
-   `MSYS_NO_PATHCONV=1 node engine/upload_dropbox.js output/row<N>.png <DROPBOX_FOLDER>/<슬러그>.png`
-   실행(슬러그 = A 타이틀 기반 영문/숫자 파일명). **Windows Git Bash는 `MSYS_NO_PATHCONV=1` 필수** — 없으면 `/thumbnails/...` 경로가 Windows 경로로 변환돼 업로드 실패. 반환 링크를 수집.
-
-9. **시트 writeback**: 승인 행은 `mcp__google-sheets__update_cells`로 F='✅ 완료', G=<링크>. 미승인은 그대로(다음 실행 때 재처리), 실패 행은 F='⚠️ <사유>'.
-
-10. **요약 보고**: 처리/성공/실패 건수 + `_preview.html` 경로 + 시트 링크.
+## 상시 자동화 (무료)
+`/loop 2m /thumbnail` → 2분마다 위 절차 반복. **Claude Code 창을 하나 열어두면** 팀원이 시트에 입력→체크만으로 동작. (PC가 켜져 있고 이 창이 떠 있는 동안)
 
 ## 주의
-- 멱등성: F가 채워진 행은 재실행 시 건너뜀.
-- 행 단위 격리: 한 행 실패가 전체를 막지 않는다.
-- Dropbox 토큰 만료(4h) 시 `thumbnail-factory-plan.md` Task 5 안내로 재발급.
+- 생성 대기·승인 대기 모두 없으면 "처리할 항목 없음"만 보고하고 종료(불필요한 작업·비용 없음).
+- 스크립트가 행 단위로 에러를 격리하므로 한 행 실패가 전체를 막지 않는다.
+- 재생성: 시트에서 상태(G)를 `🔄 재요청`으로 바꾸거나 생성요청(F) 체크 → 다음 루프에 다시 생성.

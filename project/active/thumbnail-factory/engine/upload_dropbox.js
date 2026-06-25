@@ -70,12 +70,29 @@ async function createSharedLink(dropboxPath, token) {
   throw new Error(`could not create/find shared link: ${await sh.text()}`);
 }
 
+async function deleteFile(dropboxPath, token) {
+  await fetch('https://api.dropboxapi.com/2/files/delete_v2', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path: dropboxPath }),
+  });
+}
+
 async function moveFile(fromPath, toPath, token) {
-  const r = await fetch('https://api.dropboxapi.com/2/files/move_v2', {
+  let r = await fetch('https://api.dropboxapi.com/2/files/move_v2', {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ from_path: fromPath, to_path: toPath, autorename: false }),
   });
+  if (r.status === 409) {
+    // 최종 경로에 같은 파일 존재 → 덮어쓰기(기존 삭제 후 재이동)
+    await deleteFile(toPath, token);
+    r = await fetch('https://api.dropboxapi.com/2/files/move_v2', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from_path: fromPath, to_path: toPath, autorename: false }),
+    });
+  }
   if (!r.ok) throw new Error(`move failed ${r.status}: ${await r.text()}`);
   return (await r.json()).metadata;
 }
@@ -95,4 +112,4 @@ async function main() {
   console.log(await uploadAndShare(localPath, dropboxPath));
 }
 if (require.main === module) main();
-module.exports = { directLink, tokenCacheFrom, httpHeaderSafeJson, getAccessToken, uploadFile, createSharedLink, moveFile, uploadAndShare };
+module.exports = { directLink, tokenCacheFrom, httpHeaderSafeJson, getAccessToken, uploadFile, createSharedLink, moveFile, deleteFile, uploadAndShare };
