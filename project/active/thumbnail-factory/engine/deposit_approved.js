@@ -28,7 +28,7 @@ const OUT = path.join(__dirname, '..', 'output');
         if (fs.existsSync(src)) { fs.mkdirSync(localDir, { recursive: true }); fs.copyFileSync(src, path.join(localDir, name)); }
       }
       await setStatus(r.rowNum, '✅ 완료');
-      await notifySlack(`'${title}' 썸네일 최종본 <${link}|드롭박스> 적재 완료📂`);
+      await notifySlack(`📂'${title}' 썸네일 최종본 <${link}|드롭박스> 적재 완료`);
       console.log(`완료 row${r.rowNum}: ${name}`);
     } catch (e) {
       await setStatus(r.rowNum, `⚠️ ${e.message}`.slice(0, 80));

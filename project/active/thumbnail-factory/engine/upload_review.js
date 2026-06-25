@@ -21,7 +21,7 @@ const OUT = path.join(__dirname, '..', 'output');
       const link = await uploadAndShare(png, `${FOLDER}/_review/${name}`, token);
       await setCell(j.rowNum, 'H', link);
       await setStatus(j.rowNum, '🔍 검수대기');
-      await notifySlack(`'${j.title}' 썸네일 생성 완료👨🏻‍🎨\n<${link}|미리보기>를 통해 최종 검수를 진행해주세요.`);
+      await notifySlack(`👨🏻‍🎨'${j.title}' 썸네일 생성 완료!\n> <${link}|미리보기>를 통해 최종 검수를 진행해주세요.`);
       console.log(`검수대기 row${j.rowNum}: ${name}`);
     } catch (e) {
       await setStatus(j.rowNum, `⚠️ ${e.message}`.slice(0, 80));
